@@ -16,6 +16,8 @@ $$
 \newcommand{\pmat}[1]{\begin{pmatrix}#1\end{pmatrix}}
 $$
 
+&emsp;&emsp;是这样的, 
+
 ## 1.1 Hilbert 空间
 
 &emsp;&emsp;Hilbert 空间 (在有限维下是一个 $\C^n$) $\mathcal H$ 中的一向量 $\ket{\psi}$ 描述了一量子系统的物理性质, 称 $\mathcal H$ 为量子态空间, $\ket{\psi}$ 为态向量. 在 $(\C^n\setminus\{\ket 0\},\parallel)$, 同一等价类中的向量描述的物理性质相同. $\ket u,\ket v\in\mathcal H\Ra\ket u+\ket v\in\mathcal H$, 这是所谓 "量子叠加"?
@@ -70,4 +72,18 @@ $$
 $$
 \ket\psi\mapsto\frac{M_k\ket\psi}{\sqrt{p_k}}=:\ket{\psi_k}.
 $$
-其中 $p_k=\|M_k\ket\psi\|_2^2$.
+其中 $p_k=\|M_k\ket\psi\|_2^2$. 对于厄米算子的测量, 任意厄米算子可以进行如下分解:
+$$
+O=\sum_{j}\lambda_j\ket j\bra j,
+$$
+其中 $\{\ket j\}$ 是一组正交归一基, 称为 $O$ 的本征向量, $\lambda_j$ 称为 $\ket j$ 对应的本征值. 设定 $M_k=\ket k\bra k$, 那么测量到 $k$ 的概率为 $p_k=\bra\psi M_k\ket\psi$, 测得物理量值 $\lambda_k$.
+
+&emsp;&emsp;例如, 设 $\ket\psi=\alpha\ket 0+\beta\ket 1$, 测量 $Z=\pmat{1&\\&-1}$, 显然 $Z=\ket 0\bra 0-\ket 1\bra 1$, 因此
+$$
+p_0=\pmat{\bar\alpha&\bar\beta}\times\pmat{1&\\&}\times\pmat{\alpha\\\beta}=|\alpha|^2,
+$$
+以此概率测得 $1$, 量子态坍缩到 $\ket 0$; 当然 $p_1=|\beta|^2$, 测得 $-1$, 坍缩到 $\ket 1$. 再如, 测量 $X=\pmat{&1\\1}$, 可以求得本征向量 $\ket+=\pmat{1/\sqrt 2&1/\sqrt 2}^\T$ 和 $\ket-=\pmat{-1/\sqrt 2&1/\sqrt 2}^\T$, 对应 $\lambda_+=1$, $\lambda_-=-1$. 注意 $\braket{+|-}=0$, 若令
+$$
+\ket\psi=\alpha\ket 0+\beta\ket 1=\frac{\alpha}{\sqrt 2}(\ket +-\ket -)+\frac{\beta}{\sqrt 2}(\ket ++\ket -)=\frac{\alpha+\beta}{\sqrt 2}\ket++\frac{\beta-\alpha}{\sqrt 2}\ket -,
+$$
+ 和刚刚类似, $p_+=|\alpha+\beta|^2/2$, 坍缩到 $\ket+$.
