@@ -1,28 +1,27 @@
-import tensorcircuit as tc
+from matplotlib import pyplot as plt
 import tensorflow as tf
-import math
-import numpy as np
-from scipy import linalg as la
-import itertools
-import qiskit as qk
+import tensorcircuit as tc
 
-## transform |x>|y> to |x>|y^f(x)>
-def transF(cir: tc.Circuit, is_balanced):
-    if is_balanced: cir.CNOT(0, cir._nqubits - 1)
-    return cir
+K = tc.set_backend("tensorflow")
 
-def solve(n, is_balanced):
-    cir = tc.Circuit(n + 1,
-    inputs = np.kron(np.array([0 for _ in range(1 << n)]), np.array([0, 1])))
+n, nlayers = 4, 2
+# number of qubits, number of layers
 
-    for i in range(n + 1): cir.h(i)
-    cir = transF(cir, is_balanced)
-    for i in range(n): cir.h(i)
 
-    return cir.measure(*[i for i in range(n)], with_prob = True)
+def ladder_layout_circuit(params, pbc=False):
+    """
+    `params` is for circuit trainable parameters
+    """
+    c = tc.Circuit(n)
+    offset = 0 if pbc else 1
+    for j in range(nlayers):
+        for i in range(n - offset):
+            c.cnot(i, (i + 1) % n)
+        for i in range(n):
+            c.rx(i, theta=params[j, i])
+    return c
 
-n = int(input())
-is_balanced = bool(input())
-answer = bool(solve(n, is_balanced)[1])
-if (is_balanced == answer): print("Success.")
-else: print("Wrong.")
+
+## open boundary ladder
+
+ladder_layout_circuit(K.ones(shape=[nlayers, n])).draw(output="mpl")
