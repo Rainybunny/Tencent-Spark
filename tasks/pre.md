@@ -1,3 +1,19 @@
+$$
+\textit{Litar!}
+\newcommand{\opn}[1]{\operatorname{#1}}
+\newcommand{\card}[0]{\opn{card}}
+\newcommand{\E}[0]{\exist}
+\newcommand{\A}[0]{\forall}
+\newcommand{\l}[0]{\left}
+\newcommand{\r}[0]{\right}
+\newcommand{\eps}[0]{\varepsilon}
+\newcommand{\Ra}[0]{\Rightarrow}
+\newcommand{\Eq}[0]{\Leftrightarrow}
+\newcommand{\d}[0]{\text{d}}
+\newcommand{\der}[1]{\frac{\d}{\d #1}}
+\newcommand{\oo}[0]{\infty}
+$$
+
 ### Task 2-2
 
 &emsp;&emsp;对于泡利矩阵 $P$, 欲证
