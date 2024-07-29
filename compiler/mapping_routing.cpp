@@ -3,56 +3,12 @@
 #include"outputer.h"
 #include<bits/stdc++.h>
 
-#ifdef __GNUC__
-#define SHARE __attribute__((visibility("default")))
-#else
-#define SHARE
-#endif
-
 namespace MR{
-    const double alpha=0.9,INF=1e9;
-    double Rand(){return 1.0*rand()/RAND_MAX;}
+    // 0.712  1/sqrt(2.) 0.7 0.69
+    const double alpha=1/sqrt(2.),INF=1e9;
+    // double Rand(){return 1.0*rand()/RAND_MAX;}
     int n,dist[15][15];Schedule x;Graph G,G0;
     std::vector<std::vector<int> > path[15][15];
-
-namespace HeuristicCalc {
-
-const int GATE_N = 1e4;
-constexpr double ALPHA = 0.7, BETA = 2;
-double pwra[GATE_N], pwrb[10];
-
-// Call it before solve()
-void init() {
-    pwra[0] = 1;
-    for (int i = 1; i < n; ++i) pwra[i] = pwra[i - 1] * ALPHA;
-    pwrb[0] = 1;
-    for (int i = 1; i < 9; ++i) pwrb[i] = pwrb[i - 1] * BETA;
-}
-
-double calc(const std::vector<int>& phy, const std::vector<int>& vis) {
-    std::vector<int> dep, deg; std::queue<int> que;
-    dep.resize(n, -1), deg.resize(n, 0);
-    for (int i = 0; i < n; ++i) if (!vis[i]) {
-        for (int j: G[i]) ++deg[j];
-    }
-    for (int i = 0; i < n; ++i) if (!vis[i] && !deg[i]) {
-        dep[i] = 0, que.push(i);
-    }
-
-    double sum = 0;
-    while (!que.empty()) {
-        int u = que.front(); que.pop();
-        int lx = phy[x[u].subj[0]], ly = phy[x[u].subj[1]];
-        sum += pwra[dep[u]] * pwrb[dist[lx][ly] - 1];
-        // if (dep[u] > 2) continue;
-        for (int v: G[u]) if (!--deg[v]) {
-            dep[v] = dep[u] + 1, que.push(v);
-        }
-    }
-    return sum;
-}
-
-} // HeuristicCalc
 
     double calc(std::vector<int> mp,std::vector<int> vis){
         std::vector<int> dep,deg;std::queue<int> Q;
@@ -66,16 +22,32 @@ double calc(const std::vector<int>& phy, const std::vector<int>& vis) {
             for(int v:G[u])if(!--deg[v])dep[v]=dep[u]+1,Q.push(v);
         }
         return sum;
+        // return Rand() * 10;
         // return HeuristicCalc::calc(mp, vis);
     }
-    std::mt19937 rnd(time(0));
+    std::mt19937 rnd(
+        std::chrono::steady_clock().now().time_since_epoch().count()
+    );
     double now=INF;std::vector<int> pos,rev,vis;
     void SA(){
         std::vector<int> mp;mp.resize(13);
         std::iota(mp.begin(),mp.end(),0);
-        for(double t=1e5;t>=8e-6;t*=0.998){
-            auto lst=mp;shuffle(mp.begin(),mp.end(),rnd);double tmp=calc(mp,vis);
-            if(tmp<now||tmp>=now&&exp((tmp-now)/t)<Rand())now=tmp,pos=mp;else mp=lst;
+        std::uniform_int_distribution<> dtr(0, 12);
+        for(double t=1e5;t>=1e-7;t*=0.998){
+            auto lst=mp;
+            double tmp=calc(mp,vis);
+            if (t > 1) {
+                shuffle(mp.begin(),mp.end(),rnd);
+            } else if (t > 1e-3) {
+                int p = dtr(rnd), q = dtr(rnd);
+                if (p > q) std::swap(p, q);
+                std::reverse(mp.begin() + p, mp.begin() + q + 1);
+            } else {
+                int p = dtr(rnd), q = dtr(rnd);
+                std::swap(mp[p], mp[q]);
+            }
+            bool ok = std::bernoulli_distribution(exp((tmp-now)/t))(rnd);
+            if(tmp<now||tmp>=now&&ok)now=tmp,pos=mp;else mp=lst;
         }
     }
     void init(){
@@ -109,7 +81,7 @@ double calc(const std::vector<int>& phy, const std::vector<int>& vis) {
 		// 	for(int j:G1[i])std::cout<<j<<" ";std::cout<<"\n";
 		// }
         init();x=_x;G=_G;n=x.size();pos.resize(13);vis.resize(n);
-        for(int i=1;i<=20;i++)SA();rev.resize(13);
+        for(int i=1;i<=50;i++)SA();rev.resize(13);
         for(int i=0;i<13;i++)rev[pos[i]]=i;
         Schedule result{};
         auto change=[&](Gate v){
@@ -156,6 +128,9 @@ double calc(const std::vector<int>& phy, const std::vector<int>& vis) {
         }
         // for (int i = 0; i < 13; ++i) fprintf(stderr, "%d ", pos[i]);
         // fprintf(stderr, "\n");
+#ifdef GATE_LOG
+        fprintf(stderr, "total gate: %zd\n", result.size());
+#endif
         return { pos, result };
     }
 }

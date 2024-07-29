@@ -109,11 +109,30 @@ void rx(int x, double theta)
 	append({ "h",{x},0.0 });
 }
 
+inline bool sign(const double x) {
+    static const double EPS = 1e-8;
+    if (-EPS < x && x < EPS) return 0;
+    return x < 0 ? -1 : 1;
+}
+
 void rzz(int x, int y, double theta)
 {
-	append({ "cnot",{x,y},0.0 });
-	append({ "rz",{y},theta });
-	append({ "cnot",{x,y},0.0 });
+    static const double HALF_PI = PI / 2.;
+    if (!sign(theta - HALF_PI)) { // theta = pi/2
+        append({ "x", { y }, 0 }), append({ "h", { y }, 0 });
+        append({ "cnot", { x, y } });
+        append({ "h", { y }, 0 }), append({ "x", { y }, 0 });
+        append({ "s", { x }, 0 }), append({ "s", { y }, 0 });
+    } else if (!sign(theta + HALF_PI)) { // theta = -pi/2
+        append({ "sd", { x }, 0 }), append({ "sd", { y }, 0 });
+        append({ "x", { y }, 0 }), append({ "h", { y }, 0 });
+        append({ "cnot", { x, y }, 0 });
+        append({ "h", { y }, 0 }), append({ "x", { y }, 0 });
+    } else {
+        append({ "cnot",{x,y},0.0 });
+        append({ "rz",{y},theta });
+        append({ "cnot",{x,y},0.0 });
+    }
 }
 
 
@@ -179,6 +198,14 @@ void init(int& n, Schedule& sch, Graph& grp) {
     auto scr = readScr();
     n = scr.first;
     sch = cancelSingle(n, translate(scr.second));
+#ifdef GATE_LOG
+    fprintf(stderr, "initial basic gate: %zd\n", sch.size());
+    size_t two = 0;
+    for (Gate g: sch) {
+        two += g.name == "swap" || g.name == "cz";
+    }
+    fprintf(stderr, "... with two-qubit gate: %zd\n", two);
+#endif
     grp = buildGraph(n, sch);
 }
 

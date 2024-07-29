@@ -34,7 +34,7 @@ def transpile(cir: tc.Circuit, saveLog = False):
         [MAPPING_EXECUTABLE],
         stdin = M_IN, stdout = M_OUT
     )
-    proc.wait()
+    assert(not proc.wait())
     M_IN.close(), M_OUT.close()
 
     PHYQUBIT_NUM = 13
