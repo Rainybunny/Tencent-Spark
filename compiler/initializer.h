@@ -70,6 +70,8 @@ void toffoli(const int _0, const int _1, const int _2) {
     append({ "cnot", { _0, _2 }, 0 });
     append({ "t", { _2 }, 0 });
     append({ "cnot", { _1, _2 }, 0 });
+    append({ "td", { _2 }, 0 });
+    append({ "cnot", { _0, _2 }, 0 });
     append({ "td", { _1 }, 0 });
     append({ "t", { _2 }, 0 });
     append({ "cnot", { _0, _1 }, 0 });
