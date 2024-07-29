@@ -3,6 +3,7 @@
 #include"outputer.h"
 #include<bits/stdc++.h>
 
+
 namespace MR{
     // 0.712  1/sqrt(2.) 0.7 0.69
     const double alpha=1/sqrt(2.),INF=1e9;
@@ -10,7 +11,7 @@ namespace MR{
     int n,dist[15][15];Schedule x;Graph G,G0;
     std::vector<std::vector<int> > path[15][15];
 
-    double calc(std::vector<int> mp,std::vector<int> vis){
+    double calc(const std::vector<int>& mp, const std::vector<int>& vis){
         std::vector<int> dep,deg;std::queue<int> Q;
         dep.resize(n,-1);deg.resize(n,0);
         for(int i=0;i<n;i++)if(!vis[i])for(int j:G[i])++deg[j];
@@ -22,18 +23,23 @@ namespace MR{
             for(int v:G[u])if(!--deg[v])dep[v]=dep[u]+1,Q.push(v);
         }
         return sum;
-        // return Rand() * 10;
-        // return HeuristicCalc::calc(mp, vis);
     }
     std::mt19937 rnd(
         std::chrono::steady_clock().now().time_since_epoch().count()
     );
     double now=INF;std::vector<int> pos,rev,vis;
+
+    void allClear() {
+        now = INF, x.clear(), G.clear();
+        pos.clear(), rev.clear(), vis.clear();
+    }
+
     void SA(){
+        auto st = clock();
         std::vector<int> mp;mp.resize(13);
         std::iota(mp.begin(),mp.end(),0);
         std::uniform_int_distribution<> dtr(0, 12);
-        for(double t=1e5;t>=1e-7;t*=0.998){
+        for(double t=1e5;t>=1e-7;t*=0.99){
             auto lst=mp;
             double tmp=calc(mp,vis);
             if (t > 1) {
@@ -46,9 +52,17 @@ namespace MR{
                 int p = dtr(rnd), q = dtr(rnd);
                 std::swap(mp[p], mp[q]);
             }
-            bool ok = std::bernoulli_distribution(exp((tmp-now)/t))(rnd);
-            if(tmp<now||tmp>=now&&ok)now=tmp,pos=mp;else mp=lst;
+            if(tmp<now) now = tmp, pos = mp;
+            else {
+                bool ok = std::bernoulli_distribution(exp((tmp-now)/t))(rnd);
+                if (ok) now = tmp;
+                else mp = lst;
+            }
         }
+        auto ed = clock();
+#ifdef GATE_LOG
+        // fprintf(stderr, "SA time cost: %f\n", double(ed - st) / CLOCKS_PER_SEC);
+#endif
     }
     void init(){
         auto add=[&](int u,int v){G0[u].push_back(v);G0[v].push_back(u);};
@@ -80,8 +94,9 @@ namespace MR{
 		// 	for(int j:_G[i])std::cout<<j<<" ";std::cout<<"\nG1=";
 		// 	for(int j:G1[i])std::cout<<j<<" ";std::cout<<"\n";
 		// }
-        init();x=_x;G=_G;n=x.size();pos.resize(13);vis.resize(n);
-        for(int i=1;i<=50;i++)SA();rev.resize(13);
+        x=_x;G=_G;n=x.size();pos.resize(13);vis.resize(n);
+        for(int i=1;i<=10;i++)SA();
+        rev.resize(13);
         for(int i=0;i<13;i++)rev[pos[i]]=i;
         Schedule result{};
         auto change=[&](Gate v){
@@ -136,14 +151,14 @@ namespace MR{
 }
 
 std::pair<std::vector<int>, Schedule> mapping_routing(Schedule _x,Graph _G){
-    int n=_x.size(),m=0;
-    Graph G,G1;Schedule x;
-    std::vector<int> lst,nxt,type,rev;rev.resize(n,-1);
+    int n=_x.size(),m=0;Graph G,G1;Schedule x;
+    std::vector<int> lst,nxt,type,rev,vis;
+    rev.resize(n,-1);vis.resize(n,0);
     for(int i=0;i<n;i++){
         type.push_back(_x[i].subj.size()==2);
         if(type[i]==1)rev[i]=m,++m,x.push_back(_x[i]);
     }
-    G.resize(m);G1.resize(m+1);lst.resize(n,m);nxt.resize(n,-1);
+    G.resize(m);G1.resize(m+1);lst.resize(n,-1);nxt.resize(n,-1);
     for(int i=n-1;i>=0;i--)if(type[i]==0){
         assert(_G[i].size()<=1);
         if(_G[i].size()==1){
@@ -153,27 +168,61 @@ std::pair<std::vector<int>, Schedule> mapping_routing(Schedule _x,Graph _G){
         }
     }
     for(int i=0;i<n;i++){
+        if(type[i]==0&&vis[i]==0)
+            G1[lst[i]=m].push_back(i),vis[i]=1;
         if(type[i]==0&&_G[i].size()==1){
             int z=_G[i][0];if(type[z]!=0)continue;
-            G1[lst[i]].push_back(z);lst[z]=lst[i];
+            G1[lst[z]=lst[i]].push_back(z);vis[z]=1;
         }
         if(type[i]==1)for(int j:_G[i]){
             if(type[j]==1)G[rev[i]].push_back(rev[j]);
             else{
-                G1[lst[j]=rev[i]].push_back(j);
+                G1[lst[j]=rev[i]].push_back(j),vis[j]=1;
                 if(nxt[j]!=-1)G[rev[i]].push_back(rev[nxt[j]]);
             }
         }
     }
-    return MR::solve(x,_x,G,G1);
+
+    MR::init();
+
+    int ATTEMPT = 10;
+    MR::allClear();
+    auto ans = MR::solve(x, _x, G, G1);
+    while (--ATTEMPT) {
+        MR::allClear();
+        auto tmp = MR::solve(x, _x, G, G1);
+        if (tmp.second.size() < ans.second.size()) ans = tmp;
+    }
+    return ans;
 }
 
 int n=13;Schedule sch;Graph grp;
 int main(){
 	// freopen("1.in","r",stdin);
     // freopen("1.py", "w", stdout);
+    auto st = clock();
     Init::init(n,sch,grp);
     auto res = mapping_routing(sch, grp);
+
+#if defined(GATE_LOG) && defined(GATE_COUNT)
+    std::map<std::string, int> _gateCnt;
+    for (auto g: sch) ++_gateCnt[g.name];
+    for (auto [name, cnt]: _gateCnt) {
+        fprintf(stderr, "%s: %d\n", name.c_str(), cnt);
+    }
+    fprintf(stderr, "------\n");
+
+    _gateCnt.clear();
+    for (auto g: res.second) ++_gateCnt[g.name];
+    for (auto [name, cnt]: _gateCnt) {
+        fprintf(stderr, "%s: %d\n", name.c_str(), cnt);
+    }
+#endif
+
     output(res.first, res.second);
+    auto ed = clock();
+#ifdef GATE_LOG
+    fprintf(stderr, "transpiling time: %f\n", double(ed - st) / CLOCKS_PER_SEC);
+#endif
     return 0;
 }

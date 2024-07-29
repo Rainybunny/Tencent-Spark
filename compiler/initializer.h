@@ -202,9 +202,9 @@ void init(int& n, Schedule& sch, Graph& grp) {
     fprintf(stderr, "initial basic gate: %zd\n", sch.size());
     size_t two = 0;
     for (Gate g: sch) {
-        two += g.name == "swap" || g.name == "cz";
+        two += g.name == "swap"; // || g.name == "cz";
     }
-    fprintf(stderr, "... with two-qubit gate: %zd\n", two);
+    fprintf(stderr, "... with swap gate: %zd\n", two);
 #endif
     grp = buildGraph(n, sch);
 }

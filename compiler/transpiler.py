@@ -1,9 +1,9 @@
-# import sys
+import sys
 import os
 import tensorcircuit as tc
 import subprocess as sp
 
-def circuitOutput(cir, outf):
+def circuitOutput(cir, outf = sys.stdout):
     L = cir.to_qir()
     # print(cir._nqubits)
     for gate in L:
