@@ -28,10 +28,6 @@ std::pair<int, Schedule> readScr() {
     return { n, res };
 }
 
-/**
- * Decompose all gates into one- and two-qubit gates. (Only support toffoli gate.)
- **/
-
 namespace TranslateBase {
 
 Schedule res;

@@ -159,50 +159,40 @@ double calc(const std::vector<int>& phy, const std::vector<int>& vis) {
         return { pos, result };
     }
 }
+
 std::pair<std::vector<int>, Schedule> mapping_routing(Schedule _x,Graph _G){
-	// std::cout<<"print G\n";
-	// for(int i=0;i<_G.size();i++){
-	// 	std::cout<<_x[i].name<<",{";
-	// 	for(int j:_x[i].subj)std::cout<<j<<(j==_x[i].subj.back()?"":",");
-	// 	std::cout<<"},"<<_x[i].param<<":";
-	// 	for(int j:_G[i])std::cout<<j<<" ";std::cout<<"\n";
-	// }
-    MR::HeuristicCalc::init();
-	// for(int i=0;i<_G.size();i++)
-	// 	for(int j:_G[i])std::cout<<i<<' '<<j<<"\n";
-	int n=_x.size(),m=0;
-    Graph G,G1;Schedule x;std::vector<int> lst,nxt,type,rev;
-    lst.resize(n,-1);nxt.resize(n,-1);rev.resize(n,-1);
+    int n=_x.size(),m=0;
+    Graph G,G1;Schedule x;
+    std::vector<int> lst,nxt,type,rev;rev.resize(n,-1);
     for(int i=0;i<n;i++){
-		type.push_back(_x[i].subj.size()==2);
-		if(type[i]==1)rev[i]=m,++m,x.push_back(_x[i]);
-	}
-	G.resize(m);G1.resize(m+1);
+        type.push_back(_x[i].subj.size()==2);
+        if(type[i]==1)rev[i]=m,++m,x.push_back(_x[i]);
+    }
+    G.resize(m);G1.resize(m+1);lst.resize(n,m);nxt.resize(n,-1);
     for(int i=n-1;i>=0;i--)if(type[i]==0){
-    	assert(_G[i].size()<=1);
-    	if(_G[i].size()==1){
-    		int z=_G[i][0];
-    		if(type[z]==1)nxt[i]=z;
-    		else nxt[i]=nxt[z];
-		}
-	}
-	for(int i=0;i<n;i++){
-		if(type[i]==0&&_G[i].size()==1){
-			int z=_G[i][0];if(type[z]!=0)continue;
-			G1[lst[i]].push_back(z);lst[z]=lst[i];
-		}
-		if(type[i]==1)for(int j:_G[i]){
-			if(type[j]==1)G[rev[i]].push_back(rev[j]);
-			else{
-				G1[lst[j]=rev[i]].push_back(j);
-				if(nxt[j]!=-1)G[rev[i]].push_back(rev[nxt[j]]);
-			}
-		}
-	}
-	for(int i=0;i<n;i++)
-		if(type[i]==0&&lst[i]==-1)G1[m].push_back(i);
+        assert(_G[i].size()<=1);
+        if(_G[i].size()==1){
+            int z=_G[i][0];
+            if(type[z]==1)nxt[i]=z;
+            else nxt[i]=nxt[z];
+        }
+    }
+    for(int i=0;i<n;i++){
+        if(type[i]==0&&_G[i].size()==1){
+            int z=_G[i][0];if(type[z]!=0)continue;
+            G1[lst[i]].push_back(z);lst[z]=lst[i];
+        }
+        if(type[i]==1)for(int j:_G[i]){
+            if(type[j]==1)G[rev[i]].push_back(rev[j]);
+            else{
+                G1[lst[j]=rev[i]].push_back(j);
+                if(nxt[j]!=-1)G[rev[i]].push_back(rev[nxt[j]]);
+            }
+        }
+    }
     return MR::solve(x,_x,G,G1);
 }
+
 int n=13;Schedule sch;Graph grp;
 int main(){
 	// freopen("1.in","r",stdin);
